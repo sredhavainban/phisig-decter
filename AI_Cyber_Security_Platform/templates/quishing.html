@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Cyber Security Platform — QR Quishing Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    {% include 'header.html' %}
+
+    <main class="container" style="max-width:980px;padding-top:48px;padding-bottom:80px;">
+      <section class="panel p-4" id="qr-quishing">
+        <div class="d-flex align-items-start gap-4">
+          <div style="flex:1;min-width:320px;">
+            <h2 class="mb-2">QR Quishing Detection</h2>
+            <p class="muted mb-4">Upload an image containing a QR code. The system will decode the QR, follow redirects, and report risk indicators.</p>
+            <form method="post" enctype="multipart/form-data">
+              <div class="mb-3">
+                <input type="file" name="image" accept="image/*" class="form-control" required>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Upload & Analyze</button>
+                <a class="btn btn-outline-secondary" href="/dashboard">Back to Home</a>
+              </div>
+            </form>
+            <div class="mt-4 small muted">Tip: Use a clear photo of the QR code. For testing, you can save QR images locally and upload them.</div>
+          </div>
+
+          <div style="width:420px;">
+            {% if result and (result.has_prediction or result.decoded_url is defined or result.error is defined) %}
+            <div class="result-panel panel p-3">
+              <h5 class="mb-0">Result</h5>
+              <div class="mt-3">
+                {% if result.error %}
+                  <div class="muted">Error: {{ result.error }}</div>
+                {% else %}
+                  <div><strong>Decoded URL:</strong> <div class="muted">{{ result.decoded_url }}</div></div>
+                  <div class="mt-2"><strong>Final URL:</strong> <div class="muted">{{ result.final_url }}</div></div>
+                  <div class="mt-2"><strong>Redirect Count:</strong> {{ result.redirect_count }}</div>
+                  <div class="mt-2"><strong>Risk Level:</strong> <span class="badge bg-secondary">{{ result.risk_level }}</span></div>
+                  <div class="mt-2"><strong>Redirect Chain:</strong>
+                    {% if result.redirect_chain and result.redirect_chain|length > 0 %}
+                      <ol class="small mt-1">
+                        {% for u in result.redirect_chain %}
+                          <li style="word-break:break-all">{{ u }}</li>
+                        {% endfor %}
+                      </ol>
+                    {% else %}
+                      <div class="muted">No redirects observed</div>
+                    {% endif %}
+                  </div>
+
+                  <div class="mt-2"><strong>Explanation:</strong>
+                    <div class="muted small" style="white-space:pre-wrap">{{ result.security_explanation }}</div>
+                  </div>
+                {% endif %}
+
+                <div class="mt-3 text-center">
+                  {% if result.image_path %}
+                    <img src="{{ url_for('static', filename=result.image_path) }}" alt="uploaded" style="max-width:100%;height:auto;border-radius:6px;border:1px solid rgba(255,255,255,0.03);"/>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% else %}
+              <div class="panel p-4 muted text-center">Upload a QR image to analyze redirect chain and risk</div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

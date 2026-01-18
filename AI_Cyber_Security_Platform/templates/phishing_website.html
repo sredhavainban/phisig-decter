@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Phishing Website Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    {% include 'header.html' %}
+
+    <div class="container mt-4">
+      <h1>Phishing Website Detection</h1>
+      <p>Provide features as JSON array matching the trained model's expected order, or input a URL to extract features.</p>
+      <form id="fw-form">
+        <div class="mb-3">
+          <textarea id="features" class="form-control" rows="6" placeholder='e.g. [0,1,34,0,0,...]'></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">Check</button>
+      </form>
+      <div class="mt-3">
+        <p>Or extract features from URL (uses built-in extractor):</p>
+        <form id="url-extract" class="row g-2">
+          <div class="col-10"><input id="extract-url" class="form-control" placeholder="https://example.com"></div>
+          <div class="col-2"><button class="btn btn-secondary w-100" type="submit">Extract & Predict</button></div>
+        </form>
+      </div>
+      <div id="result" class="mt-3"></div>
+    </div>
+
+    <script>
+      document.getElementById('fw-form').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const features = JSON.parse(document.getElementById('features').value||'[]');
+        const r = await fetch('/api/phishing-website', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({features})});
+        const j = await r.json();
+        document.getElementById('result').innerText = j.result;
+      });
+
+      document.getElementById('url-extract').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const url = document.getElementById('extract-url').value;
+        // call phishing-url service extractor first
+        const r1 = await fetch('/api/phishing-url', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+        const j1 = await r1.json();
+        document.getElementById('result').innerText = 'Extractor result: ' + j1.result;
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

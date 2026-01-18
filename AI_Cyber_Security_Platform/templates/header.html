@@ -1,0 +1,12 @@
+<header class="topbar">
+  <div class="brand"><div class="logo"></div>AI Cyber Security Platform</div>
+  <nav class="navlinks">
+    <a href="/dashboard" class="{% if request.path=='/dashboard' or request.path=='/' %}active{% endif %}">Home</a>
+    <a href="/phishing-url" class="{% if request.path.startswith('/phishing-url') %}active{% endif %}">Phishing URL</a>
+    <a href="/phishing-website" class="{% if request.path.startswith('/phishing-website') %}active{% endif %}">Phishing Website</a>
+    <a href="/webpage-phishing" class="{% if request.path.startswith('/webpage-phishing') %}active{% endif %}">Webpage Screenshot</a>
+    <a href="/qr-quishing" class="{% if request.path.startswith('/qr-quishing') %}active{% endif %}">QR Quishing</a>
+    <a href="/spam" class="{% if request.path.startswith('/spam') %}active{% endif %}">Spam</a>
+    <a href="/history" class="{% if request.path.startswith('/history') %}active{% endif %}">History</a>
+  </nav>
+</header>

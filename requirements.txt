@@ -1,0 +1,13 @@
+flask
+gunicorn
+opencv-python-headless
+pytesseract
+Pillow
+numpy
+pandas
+scikit-learn
+joblib
+requests
+qrcode
+gradio
+pyzbar

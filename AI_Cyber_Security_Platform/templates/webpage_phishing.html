@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Cyber Security Platform — Webpage Screenshot Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    {% include 'header.html' %}
+
+    <main class="container" style="max-width:980px;padding-top:48px;padding-bottom:80px;">
+      <section class="panel p-4" id="detection">
+        <!--
+          Webpage Screenshot Detection
+          - The backend guarantees `result` is either None or a dict with keys:
+            label, score, confidence, matches, extracted_text, highlighted_text, image_path
+          - Template uses safe checks to avoid crashes when values are missing.
+        -->
+        <div class="d-flex align-items-start gap-4">
+          <div style="flex:1;min-width:320px;">
+            <h2 class="mb-2">Webpage Screenshot Phishing Detection</h2>
+            <p class="muted mb-4">Upload a screenshot of the webpage. The system will extract text and look for phishing indicators.</p>
+            <form method="post" enctype="multipart/form-data">
+              <div class="mb-3">
+                <input type="file" name="image" accept="image/*" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Detection threshold</label>
+                <input type="number" name="threshold" min="1" max="10" class="form-control" value="{{ threshold or 3 }}">
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Upload & Predict</button>
+                <a class="btn btn-outline-secondary" href="/dashboard">Back to Home</a>
+              </div>
+            </form>
+            <div class="mt-4 ocr-tip small">Tip: For best OCR results, use a clear screenshot with readable text.</div>
+          </div>
+
+          <div style="width:420px;">
+            {% if result and result.has_prediction %}
+            <div class="result-panel panel p-3">
+              <!-- LABEL / BADGE -->
+              <div class="d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">Result</h5>
+                {# Badge logic: strictly PHISHING -> red, else -> green (LEGITIMATE or other) #}
+                {% if result.label == 'PHISHING WEBSITE' %}
+                  <div class="status-badge danger">{{ result.label }}</div>
+                {% else %}
+                  <div class="status-badge success">{{ result.label }}</div>
+                {% endif %}
+              </div>
+
+              <!-- SCORE / CONFIDENCE -->
+              <div class="mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div><strong>Score:</strong> {{ '%.2f'|format(result.score|default(0)) }}</div>
+                  <div><strong>Confidence:</strong> {{ (result.confidence|default(0))|round(0) }}%</div>
+                </div>
+                <div class="progress" style="height:10px;border-radius:8px;background:rgba(255,255,255,0.03)">
+                  <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ result.confidence|default(0) }}%;background:linear-gradient(90deg,var(--accent-2),var(--accent))" aria-valuenow="{{ result.confidence|default(0) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+
+              <!-- MATCHES -->
+              <div class="mt-3">
+                <strong>Matched Indicators:</strong>
+                {% if result.matches and result.matches|length > 0 %}
+                  <ul class="mb-2">
+                    {% for m in result.matches %}
+                      <li class="phish">{{ m }}</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <div class="muted">None</div>
+                {% endif %}
+              </div>
+
+              <!-- EXTRACTED TEXT -->
+              <div class="mt-2">
+                <strong>Extracted Text (highlighted):</strong>
+                {% if result.extracted_text is defined and (result.extracted_text|length) > 0 %}
+                  <div class="extracted-text ocr-text panel mt-2" style="max-height:220px;overflow:auto;white-space:pre-wrap">{{ result.highlighted_text | default(result.extracted_text) | safe }}</div>
+                {% else %}
+                  <div class="muted">No readable text detected from screenshot.</div>
+                {% endif %}
+              </div>
+
+              <!-- IMAGE -->
+              <div class="mt-3 text-center">
+                {% if result.image_path %}
+                  <img src="{{ url_for('static', filename=result.image_path) }}" alt="uploaded" style="max-width:100%;height:auto;border-radius:6px;border:1px solid rgba(255,255,255,0.03);"/>
+                {% endif %}
+              </div>
+            </div>
+            {% else %}
+              <div class="panel p-4 muted text-center">Upload a screenshot to analyze phishing risk</div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
